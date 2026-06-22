@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USER = 'numbush'
+        DOCKER_HUB_USER = 'giladkr'
         BACKEND_IMAGE = "${DOCKER_HUB_USER}/sports-betting-backend"
         FRONTEND_IMAGE = "${DOCKER_HUB_USER}/sports-betting-frontend"
     }
@@ -30,6 +30,23 @@ pipeline {
                 echo 'Building frontend Docker image...'
                 sh "docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} ./frontend"
                 sh "docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${FRONTEND_IMAGE}:latest"
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                echo 'Pushing images to Docker Hub...'
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh "echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin"
+                    sh "docker push ${BACKEND_IMAGE}:${BUILD_NUMBER}"
+                    sh "docker push ${BACKEND_IMAGE}:latest"
+                    sh "docker push ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+                    sh "docker push ${FRONTEND_IMAGE}:latest"
+                }
             }
         }
 
