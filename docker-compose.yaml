@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+
+  # Backend - FastAPI server
+  backend:
+    build: ./backend
+    container_name: sports-betting-backend
+    ports:
+      - "8000:8000"      # Expose backend to host machine
+    environment:
+      - DATABASE_URL=postgresql://sportsuser:sportspassword@database:5432/sportsdb
+    depends_on:
+      - database          # Wait for database to start first
+    networks:
+      - sports-betting-network
+    restart: unless-stopped
+
+  # Frontend - React served by Nginx
+  frontend:
+    build: ./frontend
+    container_name: sports-betting-frontend
+    ports:
+      - "3000:80"        # Map host 3000 to Nginx port 80
+    environment:
+      - REACT_APP_API_URL=http://192.168.202.244:8000
+    depends_on:
+      - backend          # Wait for backend to start first
+    networks:
+      - sports-betting-network
+    restart: unless-stopped
+  
+  # Database - PostgreSQL
+  database:
+    image: postgres:15-alpine
+    container_name: sports-betting-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=sportsdb
+      - POSTGRES_USER=sportsuser
+      - POSTGRES_PASSWORD=sportspassword
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    networks:
+      - sports-betting-network
+    restart: unless-stopped
+
+
+# Shared network so containers can talk to each other by service name
+networks:
+  sports-betting-network:
+    driver: bridge

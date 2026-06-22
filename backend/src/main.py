@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import create_engine, text
+import os 
 
 
 app = FastAPI(title="Sports Betting API")
@@ -11,21 +13,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# DATABASE connection
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://sportsuser:sportspassword@localhost:5432/sportsdb")
+engine = create_engine(DATABASE_URL)
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
 @app.get("/games")
 def get_games():
-    return [
-        {"id": 1, "home": "Real Madrid", "away": "Barcelona", "odds_home": 2.1, "odds_away": 3.5},
-        {"id": 2, "home": "Liverpool", "away": "Man City", "odds_home": 2.8, "odds_away": 2.4},
-    ]
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT id, home_team, away_team, odds_home, odds_away FROM games"))
+        games = [{"id": r[0], "home": r[1], "away": r[2], "odds_home": float(r[3]), "odds_away": float(r[4])} for r in result]
+    return games
 
 @app.post("/bets")
-def create_bet(bet: dict):
-    return {"message": "Bet created successfully","bet": bet}
+def place_bet(bet: dict):
+    with engine.connect() as conn:
+        conn.execute(text(
+            "INSERT INTO bets (game_id, team_chosen, amount) VALUES (:game_id, :team_chosen, :amount)"
+        ), {"game_id": bet["game_id"], "team_chosen": bet["team_chosen"], "amount": bet["amount"]})
+        conn.commit()
+    return {"message": "Bet placed successfully"}
 
 @app.get("/bets")
 def get_bets():
-    return []
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT id, game_id, team_chosen, amount FROM bets"))
+        bets = [{"id": r[0], "game_id": r[1], "team_chosen": r[2], "amount": float(r[3])} for r in result]
+    return bets

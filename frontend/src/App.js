@@ -3,13 +3,24 @@ import React, { useEffect, useState } from 'react';
 function App() {
   const [games, setGames] = useState([]);
   const [health, setHealth] = useState('checking...');
+  const API_URL = process.env.REACT_APP_API_URL || 'http://192.168.202.244:8000';
 
-  useEffect(() => {
-    fetch('http://192.168.202.244:8000/health')
+useEffect(() => {
+    fetch(`${API_URL}/health`)
       .then(res => res.json())
       .then(data => setHealth(data.status));
 
-    fetch('http://192.168.202.244:8000/games')
+    fetch(`${API_URL}/games`)
+      .then(res => res.json())
+      .then(data => setGames(data));
+  }, []);
+  
+  useEffect(() => {
+    fetch('http://backend:8000/health')
+      .then(res => res.json())
+      .then(data => setHealth(data.status));
+
+    fetch('http://backend:8000/games')
       .then(res => res.json())
       .then(data => setGames(data));
   }, []);
