@@ -14,7 +14,7 @@ useEffect(() => {
       .then(res => res.json())
       .then(data => setGames(data));
   }, []);
-  
+
   useEffect(() => {
     fetch('http://backend:8000/health')
       .then(res => res.json())
