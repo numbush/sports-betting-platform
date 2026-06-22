@@ -1,0 +1,15 @@
+# Staging environment overrides
+backend:
+  image:
+    tag: latest
+  replicaCount: 2
+
+frontend:
+  image:
+    tag: latest
+  replicaCount: 2
+
+database:
+  storage: 5Gi
+
+namespace: sports-betting-staging

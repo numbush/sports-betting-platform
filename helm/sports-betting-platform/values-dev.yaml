@@ -1,0 +1,15 @@
+# Dev environment overrides
+backend:
+  image:
+    tag: latest
+  replicaCount: 1
+
+frontend:
+  image:
+    tag: latest
+  replicaCount: 1
+
+database:
+  storage: 1Gi
+
+namespace: sports-betting-dev

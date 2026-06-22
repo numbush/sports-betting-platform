@@ -1,0 +1,51 @@
+# Default values for sports-betting-platform
+
+backend:
+  image:
+    repository: giladkr/sports-betting-backend
+    tag: latest
+    pullPolicy: Always
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+frontend:
+  image:
+    repository: giladkr/sports-betting-frontend
+    tag: latest
+    pullPolicy: Always
+  replicaCount: 1
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 31050
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+
+database:
+  image:
+    repository: postgres
+    tag: 15-alpine
+    pullPolicy: Always
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 5432
+  storage: 1Gi
+  credentials:
+    user: sportsuser
+    password: sportspassword
+    name: sportsdb  
+
+
+namespace: sports-betting-dev
