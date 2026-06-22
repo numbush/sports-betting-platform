@@ -14,11 +14,25 @@ spec:
         app: jenkins
     spec:
       serviceAccountName: jenkins
-      securityContext:
-        runAsUser: 0
+      initContainers:
+      - name: fix-permissions
+        image: alpine
+        command:
+        - sh
+        - -c
+        - |
+          chmod 777 /var/run/docker.sock
+          chown -R 1000:1000 /var/jenkins_home
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - name: jenkins-storage
+          mountPath: /var/jenkins_home
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
       containers:
       - name: jenkins
-        image: jenkins-with-docker:latest
+        image: jenkins-with-docker:v3
         imagePullPolicy: Never
         ports:
         - containerPort: 8080
