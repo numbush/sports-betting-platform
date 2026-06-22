@@ -11,6 +11,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
+                sh 'git config --global --add safe.directory "*"'
                 echo 'Pulling code from Git...'
                 checkout scm
             }
