@@ -2,6 +2,8 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
     // Image names are centralized here; BUILD_NUMBER tags each deploy for traceability
     environment {
         DOCKER_HUB_USER = 'giladkr'
