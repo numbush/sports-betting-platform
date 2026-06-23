@@ -22,8 +22,6 @@ services:
     container_name: sports-betting-frontend
     ports:
       - "3000:80"        # Map host 3000 to Nginx port 80
-    environment:
-      - REACT_APP_API_URL=http://192.168.202.244:8000
     depends_on:
       - backend          # Wait for backend to start first
     networks:

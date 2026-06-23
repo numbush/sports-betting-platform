@@ -32,7 +32,7 @@ spec:
           mountPath: /var/run/docker.sock
       containers:
       - name: jenkins
-        image: jenkins-with-docker:v3
+        image: jenkins-with-docker:v4
         imagePullPolicy: Never
         ports:
         - containerPort: 8080
