@@ -21,6 +21,7 @@
 - [Local Development](#local-development)
 - [Kubernetes Deployment](#kubernetes-deployment)
 - [CI/CD Pipeline](#cicd-pipeline)
+  - [GitHub Webhook](#github-webhook)
 - [Environments](#environments)
 - [Known Limitations](#known-limitations)
 - [Future Improvements](#future-improvements)
@@ -56,7 +57,11 @@ Database (PostgreSQL)
 ```
 Developer pushes code to GitHub
       ↓
+GitHub webhook → Jenkins (/github-webhook/)
+      ↓
 Jenkins (Pod in devops-tools namespace)
+      ↓
+Run backend tests (pytest)
       ↓
 Build Docker images (backend + frontend)
       ↓
@@ -100,6 +105,8 @@ sports-betting-platform/
 ├── backend/                     # FastAPI application
 │   ├── src/
 │   │   └── main.py
+│   ├── tests/
+│   │   └── test_main.py
 │   ├── Dockerfile
 │   └── requirements.txt
 │
@@ -113,6 +120,7 @@ sports-betting-platform/
 │   ├── backend/
 │   ├── database/
 │   ├── ingress/
+│   ├── networkpolicies/
 │   └── jenkins/                 # Jenkins on Kubernetes (custom image)
 │       └── Dockerfile           # jenkins/jenkins:lts + Docker + kubectl + Helm
 │
@@ -132,7 +140,8 @@ sports-betting-platform/
 │           ├── database-pvc.yaml
 │           ├── db-init-configmap.yaml
 │           ├── configmap.yaml
-│           └── secret.yaml
+│           ├── secret.yaml
+│           └── networkpolicies.yaml
 │
 ├── Jenkinsfile                  # CI/CD pipeline definition
 └── docker-compose.yaml          # Local development stack
@@ -170,7 +179,8 @@ docker-compose up --build
 | Service | URL |
 |---------|-----|
 | Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8000 |
+| Backend API (via UI) | http://localhost:3000/api |
+| Backend API (direct) | http://localhost:8000 |
 | API Docs | http://localhost:8000/docs |
 
 ---
@@ -210,12 +220,20 @@ kubectl apply -f k8s/jenkins/service.yaml
 
 ### Jenkins first-time setup
 
-1. Port-forward Jenkins: `kubectl port-forward service/jenkins 8080:8080 -n devops-tools`
+1. Access Jenkins (pick one):
+   - Port-forward: `kubectl port-forward service/jenkins 8080:8080 -n devops-tools`
+   - NodePort: `http://$(minikube ip):32000`
 2. Get initial password: `kubectl exec -n devops-tools deployment/jenkins -- cat /var/jenkins_home/secrets/initialAdminPassword`
-3. Install suggested plugins
+3. Install suggested plugins (include **GitHub plugin**)
 4. Create admin user
-5. Add Docker Hub credentials: **Manage Jenkins → Credentials → Add** (ID: `dockerhub-credentials`)
-6. Create Pipeline job pointing at this repo, branch `giladk`, Jenkinsfile at root
+5. **Manage Jenkins → Credentials → Add** Docker Hub credentials (ID: `dockerhub-credentials`)
+6. **Manage Jenkins → System** — set **Jenkins URL** to the URL GitHub will reach (see [GitHub Webhook](#github-webhook))
+7. Create a **Pipeline** job:
+   - Definition: Pipeline script from SCM
+   - Repository: `https://github.com/numbush/sports-betting-platform.git`
+   - Branch: `*/giladk`
+   - Script path: `Jenkinsfile`
+   - Build Triggers: enable **GitHub hook trigger for GITScm polling**
 
 ### Deploy the app with Helm
 
@@ -287,11 +305,26 @@ Jenkins runs as a Pod inside Kubernetes in the `devops-tools` namespace. This de
 | Stage | Description |
 |-------|-------------|
 | Checkout | Pull latest code from GitHub (`giladk` branch) |
+| Test | Run `pytest` against `backend/tests/` |
 | Build Backend Image | Build Docker image for FastAPI backend |
 | Build Frontend Image | Multi-stage build: React → Nginx |
 | Push to Docker Hub | Push `:BUILD_NUMBER` and `:latest` tags |
 | Deploy to Dev | `helm upgrade --install` to `sports-betting-dev` |
 | Deploy to Staging | `helm upgrade --install` with `values-staging.yaml` |
+
+Pushes to GitHub trigger the pipeline automatically via webhook (see below). The `Jenkinsfile` also declares `triggers { githubPush() }`.
+
+### GitHub Webhook
+
+Configure in **GitHub → Repository → Settings → Webhooks → Add webhook**:
+
+| Setting | Value |
+|---------|--------|
+| Payload URL | `http(s)://<your-jenkins-url>/github-webhook/` |
+| Content type | `application/json` |
+| Events | Just the push event |
+
+**Reachability:** GitHub must reach Jenkins over the network. A private minikube NodePort is not reachable from the internet — use a tunnel (e.g. ngrok, Cloudflare Tunnel) or a Jenkins instance with a public URL. Verify deliveries under **Recent Deliveries** in the webhook settings (expect HTTP 200).
 
 ### Jenkins Pod Setup
 
@@ -319,12 +352,12 @@ Jenkins runs as a Pod inside Kubernetes in the `devops-tools` namespace. This de
 
 ## Known Limitations
 
-- **Networking**: minikube runs inside Docker on a Hyper-V VM (double-NAT). Access from Windows host requires port-forwarding. In production, use a cloud LoadBalancer or Ingress with a real domain.
+- **Networking**: minikube runs inside Docker on a Hyper-V VM (double-NAT). Access from Windows host requires port-forwarding or NodePort. In production, use a cloud LoadBalancer or Ingress with a real domain.
+- **GitHub webhooks**: GitHub cannot call a private minikube URL — expose Jenkins via a tunnel or public endpoint for automatic triggers to work.
 - **Database init**: SQL scripts only run on first PVC creation. Deleting the PVC wipes all data.
 - **Secrets**: Stored as base64 in Kubernetes Secrets (not encrypted at rest). In production, use External Secrets Operator or HashiCorp Vault.
 - **No promotion gate**: Pipeline deploys to staging on every build automatically. In production, add a manual approval step between dev and staging.
-- **No automated tests**: Pipeline builds and deploys but doesn't run unit/integration tests yet.
-- **Frontend API URL**: Frontend API routing is handled via nginx reverse proxy (/api/* → backend:8000). No backend port-forward needed for the UI.
+- **Test scope**: Pipeline runs backend unit tests only — no frontend or integration tests against a live database yet.
 - **Jenkins image**: Uses `imagePullPolicy: Never` — must be built and loaded into minikube manually on each new cluster.
 - **Jenkins RBAC**: Includes NetworkPolicy permissions so Helm can manage them during deploy. In production, network policies should be managed separately by cluster admins, not by CI/CD pipelines.
 
@@ -334,8 +367,7 @@ Jenkins runs as a Pod inside Kubernetes in the `devops-tools` namespace. This de
 
 - [ ] Add Prometheus + Grafana for monitoring and alerting
 - [ ] Implement External Secrets Operator for production-grade secret management
-- [ ] Add GitHub webhook for automatic pipeline triggers on push
-- [ ] Add unit tests and integration tests to the pipeline
+- [ ] Add frontend and integration tests to the pipeline
 - [ ] Add manual promotion gate between dev and staging
 - [ ] Deploy to AWS EKS for production-grade cloud deployment
 - [ ] Add Kyverno for policy enforcement
@@ -349,4 +381,4 @@ Jenkins runs as a Pod inside Kubernetes in the `devops-tools` namespace. This de
 ## Author
 
 **Gilad Krainis**  
-[LinkedIn](https://www.linkedin.com/in/gilad-krainis) | [GitHub](https://github.com/numbush)# webhook test
+[LinkedIn](https://www.linkedin.com/in/gilad-krainis) | [GitHub](https://github.com/numbush)
