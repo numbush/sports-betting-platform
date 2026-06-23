@@ -52,12 +52,17 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                echo 'Deploying to Kubernetes...'
-                sh "kubectl set image deployment/backend backend=${BACKEND_IMAGE}:${BUILD_NUMBER} -n sports-betting-dev"
-                sh "kubectl set image deployment/frontend frontend=${FRONTEND_IMAGE}:${BUILD_NUMBER} -n sports-betting-dev"
+                echo 'Deploying to Kubernetes using Helm...'
+                sh """
+                    helm upgrade --install sports-betting-platform ./helm/sports-betting-platform \
+                    --namespace sports-betting-dev \
+                    --set backend.image.tag=${BUILD_NUMBER} \
+                    --set frontend.image.tag=${BUILD_NUMBER}
+                """
                 sh "kubectl rollout status deployment/backend -n sports-betting-dev"
                 sh "kubectl rollout status deployment/frontend -n sports-betting-dev"
             }
+
         }
     }
 
