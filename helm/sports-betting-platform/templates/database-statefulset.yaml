@@ -1,3 +1,4 @@
+# StatefulSet (not Deployment) — Postgres needs stable network identity and persistent storage
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -26,7 +27,7 @@ spec:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
         - name: init-scripts
-          mountPath: /docker-entrypoint-initdb.d
+          mountPath: /docker-entrypoint-initdb.d  # only runs when PVC is first created (empty data dir)
         livenessProbe:
           exec:
             command:

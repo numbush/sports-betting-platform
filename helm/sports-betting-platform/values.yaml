@@ -1,4 +1,5 @@
-# Default values for sports-betting-platform
+# Default values for sports-betting-platform (dev environment)
+# Jenkins overrides image.tag at deploy time with BUILD_NUMBER
 
 backend:
   image:
@@ -7,7 +8,7 @@ backend:
     pullPolicy: Always
   replicaCount: 1
   service:
-    type: ClusterIP
+    type: ClusterIP  # backend is internal-only; UI reaches it via nginx /api proxy
     port: 8000
   resources:
     requests:

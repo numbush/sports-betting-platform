@@ -1,3 +1,7 @@
+# Staging overrides — merged on top of values.yaml by Helm (-f flag)
+# 2 replicas exercises rolling updates and load balancing across pods
+# Staging overrides — merged on top of values.yaml by Helm (-f flag)
+# 2 replicas exercises rolling updates and load balancing across pods
 backend:
   image:
     repository: giladkr/sports-betting-backend

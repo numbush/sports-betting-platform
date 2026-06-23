@@ -1,3 +1,4 @@
+# Non-secret backend config — credentials live in database-secret
 apiVersion: v1
 kind: ConfigMap
 metadata:

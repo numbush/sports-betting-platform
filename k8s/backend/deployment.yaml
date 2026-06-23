@@ -1,3 +1,4 @@
+# Raw K8s manifests for manual/local deploys — Helm chart is the primary deployment path
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,7 +17,7 @@ spec:
       containers:
       - name: backend
         image: sports-betting-backend:dev
-        imagePullPolicy: Never
+        imagePullPolicy: Never  # local minikube image — built with `docker build` + `minikube image load`
         ports:
         - containerPort: 8000
         env:

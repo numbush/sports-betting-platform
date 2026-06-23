@@ -1,3 +1,4 @@
+# Raw manifest — allows any inbound traffic to frontend:80 (needed for NodePort access)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

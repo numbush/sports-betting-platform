@@ -1,6 +1,8 @@
+// Declarative pipeline — runs on any available Jenkins agent (the in-cluster Jenkins pod)
 pipeline {
     agent any
 
+    // Image names are centralized here; BUILD_NUMBER tags each deploy for traceability
     environment {
         DOCKER_HUB_USER = 'giladkr'
         BACKEND_IMAGE = "${DOCKER_HUB_USER}/sports-betting-backend"
@@ -11,6 +13,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
+                // Jenkins runs as root in a container mounting the host git repo — safe.directory avoids "dubious ownership" errors
                 sh 'git config --global --add safe.directory "*"'
                 echo 'Pulling code from Git...'
                 checkout scm
@@ -21,6 +24,7 @@ pipeline {
             steps {
                 echo 'Building backend Docker image...'
                 sh "docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} ./backend"
+                // :latest is convenient for local pulls; :BUILD_NUMBER is what Helm deploys (immutable tag per build)
                 sh "docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${BACKEND_IMAGE}:latest"
             }
         }
@@ -37,7 +41,7 @@ pipeline {
             steps {
                 echo 'Pushing images to Docker Hub...'
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credentials',
+                    credentialsId: 'dockerhub-credentials',  // stored in Jenkins Credentials — never hardcoded in the repo
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
@@ -60,6 +64,7 @@ pipeline {
                     --set backend.image.tag=${BUILD_NUMBER} \
                     --set frontend.image.tag=${BUILD_NUMBER}
                 """
+                // rollout status blocks the pipeline until new pods are ready — fails fast on bad deploys
                 sh "kubectl rollout status deployment/backend -n sports-betting-dev"
                 sh "kubectl rollout status deployment/frontend -n sports-betting-dev"
             }
@@ -77,6 +82,7 @@ pipeline {
                     --set backend.image.tag=${BUILD_NUMBER} \
                     --set frontend.image.tag=${BUILD_NUMBER}
                 """
+                // Same image tag as dev — staging differs only by values file (replicas, NodePort, storage)
                 sh "kubectl rollout status deployment/backend -n sports-betting-staging"
                 sh "kubectl rollout status deployment/frontend -n sports-betting-staging"
             }

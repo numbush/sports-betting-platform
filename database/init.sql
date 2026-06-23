@@ -1,6 +1,5 @@
 
-
--- Create database if not exists
+-- Schema init — runs via docker-entrypoint-initdb.d on first Postgres boot only
 \c sportsdb;
 -- Create tables
 

@@ -1,3 +1,4 @@
+# Custom Jenkins image: LTS base + Docker CLI + kubectl + Helm for full in-cluster CI/CD
 FROM jenkins/jenkins:lts
 
 USER root
@@ -10,6 +11,7 @@ RUN apt-get update && \
     usermod -aG docker jenkins && \
     rm -rf /var/lib/apt/lists/*
 
+# Pre-configure git safe.directory — avoids "dubious ownership" when Jenkins clones repos as root-owned volumes
 # Create gitconfig for jenkins user
 RUN mkdir -p /var/jenkins_home && \
     echo '[safe]\n\tdirectory = *' > /var/jenkins_home/.gitconfig && \

@@ -1,3 +1,4 @@
+# Isolated namespace for CI/CD tooling — separate from app namespaces (sports-betting-dev/staging)
 apiVersion: v1
 kind: Namespace
 metadata:

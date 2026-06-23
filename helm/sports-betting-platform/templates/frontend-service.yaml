@@ -1,3 +1,4 @@
+# Frontend is exposed via NodePort so browsers can reach the UI without Ingress
 apiVersion: v1
 kind: Service
 metadata:

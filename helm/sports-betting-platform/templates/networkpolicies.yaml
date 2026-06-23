@@ -1,3 +1,5 @@
+# Helm-managed NetworkPolicies — enforce least-privilege pod-to-pod traffic within the namespace.
+# Default deny: only explicitly allowed flows work once a policy selects a pod.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -18,6 +20,7 @@ spec:
     - protocol: TCP
       port: 5432
 ---
+# Only frontend pods may call the backend API on port 8000
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -38,6 +41,7 @@ spec:
     - protocol: TCP
       port: 8000
 ---
+# Frontend accepts inbound traffic on port 80 (NodePort / Ingress reach the UI here)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -50,7 +54,7 @@ spec:
   policyTypes:
   - Ingress
   ingress:
-  - from: []
+  - from: []  # empty selector = allow from any source (external traffic via NodePort needs this)
     ports:
     - protocol: TCP
       port: 80

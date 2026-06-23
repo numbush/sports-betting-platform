@@ -1,3 +1,4 @@
+# SQL init scripts baked into a ConfigMap — mounted into Postgres on first PVC creation only
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -23,6 +24,7 @@ data:
     );
   02-seed.sql: |
     \c {{ .Values.database.credentials.name }};
+    -- WHERE NOT EXISTS makes re-apply idempotent if scripts ever re-run
     INSERT INTO games (home_team, away_team, odds_home, odds_away)
     SELECT 'Real Madrid', 'Barcelona', 2.1, 3.5
     WHERE NOT EXISTS (SELECT 1 FROM games WHERE home_team='Real Madrid');

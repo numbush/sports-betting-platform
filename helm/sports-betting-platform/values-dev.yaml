@@ -1,3 +1,4 @@
+# Optional dev overrides — Jenkins pipeline uses values.yaml directly, not this file
 # Dev environment overrides
 backend:
   image:

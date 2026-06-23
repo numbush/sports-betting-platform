@@ -15,6 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
+        # Image must include nginx.conf with /api proxy — see frontend/Dockerfile
         image: sports-betting-frontend:dev
         imagePullPolicy: Never
         ports:

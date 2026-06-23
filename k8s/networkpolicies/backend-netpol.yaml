@@ -1,3 +1,4 @@
+# Raw manifest — only frontend may reach backend:8000 (matches nginx /api proxy flow)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

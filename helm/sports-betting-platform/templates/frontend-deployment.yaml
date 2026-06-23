@@ -15,6 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
+        # Container image includes nginx /api proxy — see frontend/nginx.conf
         image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
         imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
         ports:

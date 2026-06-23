@@ -22,6 +22,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copy only the built static files from Stage 1 into Nginx's serving directory
+# Copy custom nginx config BEFORE static files — enables /api reverse proxy in the final image
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/build /usr/share/nginx/html
 

@@ -1,3 +1,4 @@
+# Internal-only service — browser traffic reaches backend through frontend nginx /api proxy
 apiVersion: v1
 kind: Service
 metadata:

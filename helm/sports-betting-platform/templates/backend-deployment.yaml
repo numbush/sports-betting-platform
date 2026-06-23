@@ -46,6 +46,7 @@ spec:
               name: database-secret
               key: DB_PASSWORD
         - name: DATABASE_URL
+          # K8s expands $(VAR) from sibling env vars — builds the connection string without hardcoding secrets
           value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
         resources:
           {{- toYaml .Values.backend.resources | nindent 10 }}
@@ -57,7 +58,7 @@ spec:
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /health
+            path: /health  # returns 503 when DB is down — pod won't receive traffic until healthy
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
