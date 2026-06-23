@@ -25,7 +25,7 @@ pipeline {
                 echo 'Running tests...'
                 sh """
                     cd backend
-                    pip3 install -r requirements.txt
+                    pip install -r requirements.txt
                     python3 -m pytest tests/ -v
                 """
             }
