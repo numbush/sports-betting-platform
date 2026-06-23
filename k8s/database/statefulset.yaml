@@ -1,3 +1,8 @@
+# NOTE: This raw manifest does not include DB init scripts.
+# Use the Helm chart (helm/sports-betting-platform) for a complete deployment
+# with automatic table creation and seed data via ConfigMap.
+
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

@@ -244,7 +244,7 @@ kubectl port-forward service/backend 8000:8000 -n sports-betting-dev --address 0
 | Service | Local Compose | K8s Dev | K8s Staging |
 |---------|--------------|---------|-------------|
 | Frontend | :3000 | NodePort 31050 | NodePort 31051 |
-| Backend | :8000 | ClusterIP (port-forward) | ClusterIP |
+| Backend | :8000 | Via /api proxy (no port-forward needed) | Via /api proxy |
 | Jenkins | — | port-forward :8080 | — |
 
 ### Useful commands
@@ -312,7 +312,7 @@ Jenkins runs as a Pod inside Kubernetes in the `devops-tools` namespace. This de
 - **Secrets**: Stored as base64 in Kubernetes Secrets (not encrypted at rest). In production, use External Secrets Operator or HashiCorp Vault.
 - **No promotion gate**: Pipeline deploys to staging on every build automatically. In production, add a manual approval step between dev and staging.
 - **No automated tests**: Pipeline builds and deploys but doesn't run unit/integration tests yet.
-- **Frontend API URL**: Hardcoded to VM IP in Docker Compose. Kubernetes uses port-forward workaround instead of proper Ingress routing.
+- **Frontend API URL**: Frontend API routing is handled via nginx reverse proxy (/api/* → backend:8000). No backend port-forward needed for the UI.
 - **Jenkins image**: Uses `imagePullPolicy: Never` — must be built and loaded into minikube manually on each new cluster.
 
 ---
@@ -324,7 +324,6 @@ Jenkins runs as a Pod inside Kubernetes in the `devops-tools` namespace. This de
 - [ ] Add GitHub webhook for automatic pipeline triggers on push
 - [ ] Add unit tests and integration tests to the pipeline
 - [ ] Add manual promotion gate between dev and staging
-- [ ] Fix frontend API URL with proper Ingress routing
 - [ ] Deploy to AWS EKS for production-grade cloud deployment
 - [ ] Add Kyverno for policy enforcement
 - [ ] Add NetworkPolicy for pod-to-pod communication restrictions
