@@ -326,6 +326,7 @@ Jenkins runs as a Pod inside Kubernetes in the `devops-tools` namespace. This de
 - **No automated tests**: Pipeline builds and deploys but doesn't run unit/integration tests yet.
 - **Frontend API URL**: Frontend API routing is handled via nginx reverse proxy (/api/* → backend:8000). No backend port-forward needed for the UI.
 - **Jenkins image**: Uses `imagePullPolicy: Never` — must be built and loaded into minikube manually on each new cluster.
+- **Jenkins RBAC**: Includes NetworkPolicy permissions so Helm can manage them during deploy. In production, network policies should be managed separately by cluster admins, not by CI/CD pipelines.
 
 ---
 
@@ -338,7 +339,7 @@ Jenkins runs as a Pod inside Kubernetes in the `devops-tools` namespace. This de
 - [ ] Add manual promotion gate between dev and staging
 - [ ] Deploy to AWS EKS for production-grade cloud deployment
 - [ ] Add Kyverno for policy enforcement
-- [ ] Add NetworkPolicy for pod-to-pod communication restrictions
+- [ ] Restrict Jenkins RBAC — manage NetworkPolicies outside the CI/CD pipeline
 - [ ] Migrate to multi-repo structure (separate repo per service)
 - [ ] Add bet placement UI (currently API-only)
 - [ ] Add user authentication
