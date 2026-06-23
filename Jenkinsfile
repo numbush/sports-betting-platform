@@ -50,9 +50,9 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to Dev') {
             steps {
-                echo 'Deploying to Kubernetes using Helm...'
+                echo 'Deploying to Dev environment...'
                 sh """
                     helm upgrade --install sports-betting ./helm/sports-betting-platform \
                     --namespace sports-betting-dev \
@@ -63,6 +63,20 @@ pipeline {
                 sh "kubectl rollout status deployment/frontend -n sports-betting-dev"
             }
 
+        }
+
+        stage('Deploy to Staging') {
+            steps {
+                echo 'Deploying to Staging environment...'
+                sh """
+                    helm upgrade --install sports-betting ./helm/sports-betting-platform \
+                    --namespace sports-betting-staging \
+                    --set backend.image.tag=${BUILD_NUMBER} \
+                    --set frontend.image.tag=${BUILD_NUMBER}
+                """
+                sh "kubectl rollout status deployment/backend -n sports-betting-staging"
+                sh "kubectl rollout status deployment/frontend -n sports-betting-staging"
+            }
         }
     }
 
