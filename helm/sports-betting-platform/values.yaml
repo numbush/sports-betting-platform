@@ -42,10 +42,10 @@ database:
     type: ClusterIP
     port: 5432
   storage: 1Gi
-  credentials:
+  credentials: # WARNING: Dev-only credentials. In production use External Secrets Operator.
     user: sportsuser
     password: sportspassword
-    name: sportsdb  
+    name: sportsdb 
 
 
 namespace: sports-betting-dev
