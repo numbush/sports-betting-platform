@@ -275,7 +275,7 @@ kubectl port-forward service/backend 8000:8000 -n sports-betting-dev --address 0
 | Frontend | :3000 | NodePort 31050 | NodePort 31051 |
 | Backend API (via UI) | `/api` on :3000 | `/api` on frontend URL | `/api` on frontend URL |
 | Backend API (direct) | :8000 | port-forward :8000 (optional) | port-forward :8000 (optional) |
-| Jenkins | — | port-forward :8080 | — |
+| Jenkins | — | port-forward :8080 or NodePort 32000 | — |
 
 ### Useful commands
 
