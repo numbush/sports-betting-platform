@@ -70,6 +70,7 @@ pipeline {
                 echo 'Deploying to Staging environment...'
                 sh """
                     helm upgrade --install sports-betting-staging ./helm/sports-betting-platform \
+                    -f ./helm/sports-betting-platform/values-staging.yaml \
                     --namespace sports-betting-staging \
                     --set backend.image.tag=${BUILD_NUMBER} \
                     --set frontend.image.tag=${BUILD_NUMBER}
