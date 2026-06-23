@@ -20,6 +20,17 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+                sh """
+                    cd backend
+                    pip3 install -r requirements.txt
+                    python3 -m pytest tests/ -v
+                """
+            }
+        }
+
         stage('Build Backend Image') {
             steps {
                 echo 'Building backend Docker image...'

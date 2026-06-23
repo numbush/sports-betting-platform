@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine, text
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 import os 
 
 class BetRequest(BaseModel):
@@ -10,18 +10,21 @@ class BetRequest(BaseModel):
     team_chosen: str
     amount: float
 
-    @validator('amount')
+    @field_validator('amount')
+    @classmethod
     def amount_must_be_positive(cls, v):
         if v <= 0:
             raise ValueError('Amount must be positive')
         return v
 
-    @validator('team_chosen')
+    @field_validator('team_chosen')
+    @classmethod
     def team_must_not_be_empty(cls, v):
         if not v.strip():
             raise ValueError('Team chosen must not be empty')
         return v
 
+        
 app = FastAPI(title="Sports Betting API")
 
 app.add_middleware(
