@@ -1,0 +1,13 @@
+# Internal-only service — browser traffic reaches backend through frontend nginx /api proxy
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: {{ .Values.backend.service.port }}
+    targetPort: 8000
+  type: {{ .Values.backend.service.type }}

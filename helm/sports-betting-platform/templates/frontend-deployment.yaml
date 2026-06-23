@@ -2,9 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
-  namespace: sports-betting-dev
+  namespace: {{ .Values.namespace }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.frontend.replicaCount }}
   selector:
     matchLabels:
       app: frontend
@@ -15,11 +15,13 @@ spec:
     spec:
       containers:
       - name: frontend
-        # Image must include nginx.conf with /api proxy — see frontend/Dockerfile
-        image: sports-betting-frontend:dev
-        imagePullPolicy: Never
+        # Container image includes nginx /api proxy — see frontend/nginx.conf
+        image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+        imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
         ports:
         - containerPort: 80
+        resources:
+          {{- toYaml .Values.frontend.resources | nindent 10 }}
         livenessProbe:
           httpGet:
             path: /

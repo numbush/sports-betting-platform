@@ -1,3 +1,4 @@
+# Persists Jenkins home (jobs, plugins, credentials) across pod restarts
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

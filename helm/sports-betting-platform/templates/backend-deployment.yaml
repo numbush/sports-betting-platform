@@ -1,11 +1,10 @@
-# Raw K8s manifests for manual/local deploys — Helm chart is the primary deployment path
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
-  namespace: sports-betting-dev
+  namespace: {{ .Values.namespace }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.backend.replicaCount }}
   selector:
     matchLabels:
       app: backend
@@ -16,8 +15,8 @@ spec:
     spec:
       containers:
       - name: backend
-        image: sports-betting-backend:dev
-        imagePullPolicy: Never  # local minikube image — built with `docker build` + `minikube image load`
+        image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
         ports:
         - containerPort: 8000
         env:
@@ -39,15 +38,18 @@ spec:
         - name: DB_USER
           valueFrom:
             secretKeyRef:
-              name: backend-secret
+              name: database-secret
               key: DB_USER
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: backend-secret
+              name: database-secret
               key: DB_PASSWORD
         - name: DATABASE_URL
+          # K8s expands $(VAR) from sibling env vars — builds the connection string without hardcoding secrets
           value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+        resources:
+          {{- toYaml .Values.backend.resources | nindent 10 }}
         livenessProbe:
           httpGet:
             path: /health
@@ -56,7 +58,7 @@ spec:
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /health
+            path: /health  # returns 503 when DB is down — pod won't receive traffic until healthy
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5

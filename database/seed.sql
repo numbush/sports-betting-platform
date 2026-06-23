@@ -1,3 +1,4 @@
+-- Demo data for local Docker Compose (Helm chart uses idempotent INSERT ... WHERE NOT EXISTS instead)
 \c sportsdb;
 
 INSERT INTO games (home_team, away_team, odds_home, odds_away) VALUES

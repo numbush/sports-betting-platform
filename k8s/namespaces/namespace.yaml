@@ -1,3 +1,4 @@
+# App namespace — staging gets its own via Helm --namespace + values-staging.yaml
 apiVersion: v1
 kind: Namespace
 metadata:

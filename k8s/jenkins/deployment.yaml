@@ -1,3 +1,4 @@
+# Jenkins runs inside the cluster and builds images via the host Docker socket (Docker-outside-of-Docker pattern)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,10 +14,27 @@ spec:
       labels:
         app: jenkins
     spec:
-      serviceAccountName: jenkins
+      serviceAccountName: jenkins  # SA token is what Helm/kubectl use for in-cluster deploys
+      initContainers:
+      - name: fix-permissions
+        image: alpine
+        command:
+        - sh
+        - -c
+        - |
+          chmod 777 /var/run/docker.sock  # allows jenkins user to talk to host Docker daemon (security tradeoff)
+          chown -R 1000:1000 /var/jenkins_home
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - name: jenkins-storage
+          mountPath: /var/jenkins_home
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
       containers:
       - name: jenkins
-        image: jenkins/jenkins:lts
+        image: jenkins-with-docker:v4
+        imagePullPolicy: Never  # custom image — must be built locally and loaded into minikube
         ports:
         - containerPort: 8080
           name: http
@@ -25,6 +43,8 @@ spec:
         volumeMounts:
         - name: jenkins-storage
           mountPath: /var/jenkins_home
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
         resources:
           requests:
             cpu: 500m
@@ -48,3 +68,6 @@ spec:
       - name: jenkins-storage
         persistentVolumeClaim:
           claimName: jenkins-pvc
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock  # mounts the node's Docker socket into the pod

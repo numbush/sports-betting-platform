@@ -1,0 +1,7 @@
+# Helm chart packages all app resources — one `helm upgrade` deploys the full stack per namespace
+apiVersion: v2
+name: sports-betting-platform
+description: A sports betting platform Helm chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

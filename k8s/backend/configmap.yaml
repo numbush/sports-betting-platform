@@ -4,7 +4,7 @@ metadata:
   name: backend-config
   namespace: sports-betting-dev
 data:
-  # Non-sensitive configuration
+  # "database" resolves via K8s DNS to the database Service in the same namespace
   DB_HOST: "database"
   DB_PORT: "5432"
   DB_NAME: "sportsdb"

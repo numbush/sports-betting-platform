@@ -1,0 +1,12 @@
+# Postgres data survives pod restarts — deleting this PVC wipes the database
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: {{ .Values.namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.database.storage }}

@@ -1,13 +1,9 @@
-# NOTE: This raw manifest does not include DB init scripts.
-# Use the Helm chart (helm/sports-betting-platform) for a complete deployment
-# with automatic table creation and seed data via ConfigMap.
-
-
+# StatefulSet (not Deployment) — Postgres needs stable network identity and persistent storage
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: database
-  namespace: sports-betting-dev
+  namespace: {{ .Values.namespace }}
 spec:
   serviceName: database
   replicas: 1
@@ -30,14 +26,16 @@ spec:
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d  # only runs when PVC is first created (empty data dir)
         livenessProbe:
           exec:
             command:
             - pg_isready
             - -U
-            - sportsuser
+            - {{ .Values.database.credentials.user }}
             - -d
-            - sportsdb
+            - {{ .Values.database.credentials.name }}
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
@@ -45,12 +43,15 @@ spec:
             command:
             - pg_isready
             - -U
-            - sportsuser
+            - {{ .Values.database.credentials.user }}
             - -d
-            - sportsdb
+            - {{ .Values.database.credentials.name }}
           initialDelaySeconds: 5
           periodSeconds: 5
       volumes:
       - name: postgres-storage
         persistentVolumeClaim:
           claimName: postgres-pvc
+      - name: init-scripts
+        configMap:
+          name: db-init-scripts

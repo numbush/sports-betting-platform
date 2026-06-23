@@ -1,0 +1,14 @@
+# Frontend is exposed via NodePort so browsers can reach the UI without Ingress
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: {{ .Values.frontend.service.port }}
+    targetPort: 80
+    nodePort: {{ .Values.frontend.service.nodePort }}
+  type: {{ .Values.frontend.service.type }}

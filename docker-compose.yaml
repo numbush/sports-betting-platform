@@ -1,3 +1,4 @@
+# Local development stack — mirrors the K8s service topology (frontend → backend → database)
 version: '3.8'
 
 services:
@@ -11,19 +12,17 @@ services:
     environment:
       - DATABASE_URL=postgresql://sportsuser:sportspassword@database:5432/sportsdb
     depends_on:
-      - database          # Wait for database to start first
+      - database          # Note: only waits for container start, not for Postgres to accept connections
     networks:
       - sports-betting-network
     restart: unless-stopped
 
-  # Frontend - React served by Nginx
+  # Frontend - React static files served by Nginx; API calls go to /api (proxied to backend container)
   frontend:
     build: ./frontend
     container_name: sports-betting-frontend
     ports:
       - "3000:80"        # Map host 3000 to Nginx port 80
-    environment:
-      - REACT_APP_API_URL=http://192.168.202.244:8000
     depends_on:
       - backend          # Wait for backend to start first
     networks:
@@ -41,6 +40,7 @@ services:
       - POSTGRES_USER=sportsuser
       - POSTGRES_PASSWORD=sportspassword
     volumes:
+      # Scripts in docker-entrypoint-initdb.d/ run ONLY on first boot when the data volume is empty
       - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
     networks:

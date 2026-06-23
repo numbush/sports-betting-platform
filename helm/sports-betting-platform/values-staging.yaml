@@ -1,0 +1,53 @@
+# Staging overrides — merged on top of values.yaml by Helm (-f flag)
+# 2 replicas exercises rolling updates and load balancing across pods
+# Staging overrides — merged on top of values.yaml by Helm (-f flag)
+# 2 replicas exercises rolling updates and load balancing across pods
+backend:
+  image:
+    repository: giladkr/sports-betting-backend
+    tag: latest
+    pullPolicy: Always
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+frontend:
+  image:
+    repository: giladkr/sports-betting-frontend
+    tag: latest
+    pullPolicy: Always
+  replicaCount: 2
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 31051
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+database:
+  image:
+    repository: postgres
+    tag: 15-alpine
+  replicaCount: 1
+  service:
+    port: 5432
+  storage: 5Gi
+  credentials:
+    user: sportsuser
+    password: sportspassword
+    name: sportsdb
+
+namespace: sports-betting-staging
