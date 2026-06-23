@@ -54,7 +54,7 @@ pipeline {
             steps {
                 echo 'Deploying to Kubernetes using Helm...'
                 sh """
-                    helm upgrade --install sports-betting-platform ./helm/sports-betting-platform \
+                    helm upgrade --install sports-betting ./helm/sports-betting-platform \
                     --namespace sports-betting-dev \
                     --set backend.image.tag=${BUILD_NUMBER} \
                     --set frontend.image.tag=${BUILD_NUMBER}
