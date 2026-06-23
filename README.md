@@ -234,17 +234,29 @@ helm install sports-betting-staging ./helm/sports-betting-platform \
 
 ### Access the app
 
-Port-forward to access from your host:
+Open the frontend — the UI calls the backend via `/api/*` (nginx proxy inside the frontend pod). No backend port-forward is needed for the app to work.
 
 ```bash
+# Option A: NodePort (recommended)
+minikube service frontend -n sports-betting-dev --url
+# or: http://$(minikube ip):31050
+
+# Option B: Port-forward frontend only
 kubectl port-forward service/frontend 3000:80 -n sports-betting-dev --address 0.0.0.0
+```
+
+Optional — direct backend access for Swagger docs only:
+
+```bash
 kubectl port-forward service/backend 8000:8000 -n sports-betting-dev --address 0.0.0.0
+# API docs: http://localhost:8000/docs
 ```
 
 | Service | Local Compose | K8s Dev | K8s Staging |
 |---------|--------------|---------|-------------|
 | Frontend | :3000 | NodePort 31050 | NodePort 31051 |
-| Backend | :8000 | Via /api proxy (no port-forward needed) | Via /api proxy |
+| Backend API (via UI) | `/api` on :3000 | `/api` on frontend URL | `/api` on frontend URL |
+| Backend API (direct) | :8000 | port-forward :8000 (optional) | port-forward :8000 (optional) |
 | Jenkins | — | port-forward :8080 | — |
 
 ### Useful commands
