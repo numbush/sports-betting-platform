@@ -19,8 +19,12 @@ engine = create_engine(DATABASE_URL)
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
-
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {"status": "ok"}
+    except Exception as e:
+        return {"status": "error", "database": "unreachable"}
 @app.get("/games")
 def get_games():
     with engine.connect() as conn:

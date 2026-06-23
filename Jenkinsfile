@@ -56,6 +56,7 @@ pipeline {
                 sh """
                     helm upgrade --install sports-betting ./helm/sports-betting-platform \
                     --namespace sports-betting-dev \
+                    --create-namespace \
                     --set backend.image.tag=${BUILD_NUMBER} \
                     --set frontend.image.tag=${BUILD_NUMBER}
                 """
@@ -72,6 +73,7 @@ pipeline {
                     helm upgrade --install sports-betting-staging ./helm/sports-betting-platform \
                     -f ./helm/sports-betting-platform/values-staging.yaml \
                     --namespace sports-betting-staging \
+                    --create-namespace \
                     --set backend.image.tag=${BUILD_NUMBER} \
                     --set frontend.image.tag=${BUILD_NUMBER}
                 """
